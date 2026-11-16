@@ -1,0 +1,90 @@
+1. Predict the price of the Uber ride from a given pickup point to the agreed drop-off location.
+Perform following tasks:
+	1. Pre-process the dataset.
+	2. Identify outliers.
+	3. Check the correlation.
+	4. Implement linear regression and random forest regression models.
+	5. Evaluate the models and compare their respective scores like R2, RMSE, etc.
+Dataset link: https://www.kaggle.com/datasets/yasserh/uber-fares-dataset
+-----------------------------------------------------------------------------------------------
+Cell 1 :- Import libraries and load dataset
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_squared_error
+
+df = pd.read_csv("uber.csv")
+df.head()
+-----------------------------------------------------------------------------------
+cell 2 :-Pre-process the dataset
+
+df = df.drop(columns=["Unnamed: 0", "key"], errors="ignore")
+df = df.dropna()
+df["pickup_datetime"] = pd.to_datetime(df["pickup_datetime"], errors="coerce", utc=True)
+df["hour"] = df["pickup_datetime"].dt.hour
+df["day"] = df["pickup_datetime"].dt.day
+df["month"] = df["pickup_datetime"].dt.month
+df = df.drop(columns=["pickup_datetime"])
+df = df.dropna()
+print(df.head())
+print(df.shape)
+----------------------------------------------------------------------------------
+cell 3 :-Identify outliers
+
+Q1 = df["fare_amount"].quantile(0.25)
+Q3 = df["fare_amount"].quantile(0.75)
+IQR = Q3 - Q1
+outliers = df[(df["fare_amount"] < Q1 - 1.5 * IQR) |
+              (df["fare_amount"] > Q3 + 1.5 * IQR)]
+print("Total Outliers:", len(outliers))
+----------------------------------------------------------------------------------
+cell 4 :-Remove outliers
+
+df = df[(df["fare_amount"] >= Q1 - 1.5 * IQR) &
+        (df["fare_amount"] <= Q3 + 1.5 * IQR)]
+df = df[df["fare_amount"] > 0]
+print("Shape after removing outliers:", df.shape)
+-----------------------------------------------------------------------------------
+cell 5 :-Check correlation
+
+plt.figure(figsize=(10, 6))
+sns.heatmap(df.corr(), annot=True, cmap="coolwarm")
+plt.show()
+----------------------------------------------------------------------------------
+cell 6 :-Split the dataset
+
+X = df.drop("fare_amount", axis=1)
+y = df["fare_amount"]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+---------------------------------------------------------------------------------
+cell 7 :- Linear Regression Model 
+
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+y_pred1 = lr.predict(X_test)
+print("Linear Regression R2 Score:", r2_score(y_test, y_pred1))
+print("Linear Regression RMSE:", np.sqrt(mean_squared_error(y_test, y_pred1)))
+---------------------------------------------------------------------------------
+cell 8 :-Random Forest Model
+
+rf = RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1)
+rf.fit(X_train, y_train)
+y_pred2 = rf.predict(X_test)
+print("Random Forest R2 Score:", r2_score(y_test, y_pred2))
+print("Random Forest RMSE:", np.sqrt(mean_squared_error(y_test, y_pred2)))
+---------------------------------------------------------------------------------
+cell 9 :-Compare both models
+
+print("Linear Regression R2:", r2_score(y_test, y_pred1))
+print("Random Forest R2:", r2_score(y_test, y_pred2))
+
+print("Linear Regression RMSE:", np.sqrt(mean_squared_error(y_test, y_pred1)))
+print("Random Forest RMSE:", np.sqrt(mean_squared_error(y_test, y_pred2)))
