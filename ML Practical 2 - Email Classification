@@ -40,33 +40,48 @@ X_train, X_test, y_train, y_test = train_test_split(
 ----------------------------------------------------------------------------------------------
 Cell 4 :- Convert text into numerical data
 
-tfidf = TfidfVectorizer(stop_words="english", max_features=3000)
-X_train = tfidf.fit_transform(X_train)
-X_test = tfidf.transform(X_test)
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler(with_mean=False)
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 ----------------------------------------------------------------------------------------------
 Cell 5 :- K-Nearest Neighbors (KNN) Model
 
 knn = KNeighborsClassifier(n_neighbors=5)
 knn.fit(X_train, y_train)
-y_pred1 = knn.predict(X_test)
-print("KNN Accuracy:", accuracy_score(y_test, y_pred1))
-print(classification_report(y_test, y_pred1))
+y_pred_knn = knn.predict(X_test)
+print("KNN Accuracy:", accuracy_score(y_test, y_pred_knn))
+print("KNN Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred_knn))
+print("KNN Classification Report:")
+print(classification_report(y_test, y_pred_knn))
 ----------------------------------------------------------------------------------------------
 Cell 6 :- Support Vector Machine (SVM) Model
 
+from sklearn.svm import SVC
 svm = SVC(kernel="linear")
 svm.fit(X_train, y_train)
-y_pred2 = svm.predict(X_test)
-print("SVM Accuracy:", accuracy_score(y_test, y_pred2))
-print(classification_report(y_test, y_pred2))
+y_pred_svm = svm.predict(X_test)
+print("SVM Accuracy:", accuracy_score(y_test, y_pred_svm))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred_svm))
+print("Classification Report:")
+print(classification_report(y_test, y_pred_svm))
 ----------------------------------------------------------------------------------------------
 Cell 7 :- Confusion Matrix
 
+
+y_pred1 = y_pred_knn
+y_pred2 = y_pred_svm
 sns.heatmap(confusion_matrix(y_test, y_pred1), annot=True, fmt="d")
 plt.title("KNN Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
 plt.show()
 sns.heatmap(confusion_matrix(y_test, y_pred2), annot=True, fmt="d")
 plt.title("SVM Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
 plt.show()
 ---------------------------------------------------------------------------------------------
 Cell 8 :- Compare both models
